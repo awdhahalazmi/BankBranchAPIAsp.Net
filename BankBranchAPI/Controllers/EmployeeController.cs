@@ -1,6 +1,8 @@
 ﻿using BankBranchAPI.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace BankBranchAPI.Controllers
 {
@@ -15,22 +17,82 @@ namespace BankBranchAPI.Controllers
             {
                 _context = context;
             }
-            [HttpGet]
-            public async Task<ActionResult<IEnumerable<AddEmployeeForm>>> GetAll()
+        [HttpGet]
+        [Authorize]
+        public async Task<ActionResult<PageListResult<AddEmployeeForm>>> GetAll(int page = 1, string searchTerm ="", bool isAscending = true)
+        {
+
+            if (isAscending)
             {
-                return _context.Employees.Select(b => new AddEmployeeForm
+                if (!string.IsNullOrEmpty(searchTerm))
+                {
+                    return _context.Employees
+                        .Where(c => c.Name.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
+                         .OrderBy(c => c.Id)
+                .Select(b => new AddEmployeeForm
+
                 {
                     Name = b.Name,
                     Position = b.Position,
                     CivilId = b.CivilId,
-                  BankId = b.BankBranch.Id,
-                  Id = b.Id
+                    BankId = b.BankBranch.Id,
+                    Id = b.Id
 
-                }).ToList();
+                }).ToPageList(page, 1);
+                }
+
+                return _context.Employees
+                     .OrderBy(c => c.Id)
+                .Select(b => new AddEmployeeForm
+
+                {
+                    Name = b.Name,
+                    Position = b.Position,
+                    CivilId = b.CivilId,
+                    BankId = b.BankBranch.Id,
+                    Id = b.Id
+
+                }).ToPageList(page, 1);
+            
+        }
+
+            if (!string.IsNullOrEmpty(searchTerm))
+            {
+                return _context.Employees
+                    .Where(c => c.Name.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
+                  .OrderByDescending(c => c.Id)
+            .Select(b => new AddEmployeeForm
+
+            {
+                Name = b.Name,
+                Position = b.Position,
+                CivilId = b.CivilId,
+                BankId = b.BankBranch.Id,
+                Id = b.Id
+
+            }).ToPageList(page, 1);
             }
 
+            return _context.Employees
+                                  .OrderByDescending(c => c.Id)
+
+
+            .Select(b => new AddEmployeeForm
+
+
+            {
+                Name = b.Name,
+                Position = b.Position,
+                CivilId = b.CivilId,
+                BankId = b.BankBranch.Id,
+                Id = b.Id
+
+            }).ToPageList(page, 1);
+        }
+
             [HttpGet("{id}")]
-            public ActionResult<AddEmployeeForm> Details(int id)
+            [Authorize]
+        public ActionResult<AddEmployeeForm> Details(int id)
             {
                 var bankEmployee = _context.Employees.Find(id);
 
@@ -50,6 +112,7 @@ namespace BankBranchAPI.Controllers
 
 
         [HttpPost("AddEmployee")]
+        [Authorize(Roles = "admin")]
         public async Task<ActionResult<Employee>> AddEmployee(AddEmployeeForm employee)
         {
             try
@@ -81,7 +144,8 @@ namespace BankBranchAPI.Controllers
         }
 
         [HttpPatch("{id}")]
-            public IActionResult Edit(int id, AddEmployeeForm req)
+        [Authorize(Roles = "admin")]
+        public IActionResult Edit(int id, AddEmployeeForm req)
             {
             try
             {
@@ -112,7 +176,8 @@ namespace BankBranchAPI.Controllers
         }
 
         [HttpDelete("{id}")]
-            public IActionResult Delete(int id)
+        [Authorize(Roles = "admin")]
+        public IActionResult Delete(int id)
             {
            // var bankBranch = _context.Branches.Find(id);
 

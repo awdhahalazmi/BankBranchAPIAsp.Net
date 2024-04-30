@@ -1,4 +1,5 @@
 ﻿using BankBranchAPI.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -16,6 +17,8 @@ namespace BankBranchAPI.Controllers
             _context = context;
         }
         [HttpGet]
+        [Authorize]
+
         public async Task<ActionResult<IEnumerable<BankBranchResponse>>> GetAll()
         {
             return  _context.Branches.Select(b => new BankBranchResponse
@@ -28,6 +31,8 @@ namespace BankBranchAPI.Controllers
         }
 
         [HttpGet("{id}")]
+        [Authorize]
+
         public ActionResult<BankBranchResponse> Details(int id)
         {
             var bank = _context.Branches.Find(id);
@@ -48,6 +53,8 @@ namespace BankBranchAPI.Controllers
        
 
         [HttpPost("AddBranch")]
+        [Authorize]
+
         public async Task<ActionResult<BankBranch>> AddBranch(AddBankRequest branch)
         {
             try
@@ -69,7 +76,8 @@ namespace BankBranchAPI.Controllers
             }
         }
 
-        [HttpPatch("{id}")]
+        [HttpPatch("Edit")]
+       [Authorize]
         public IActionResult Edit(int id, AddBankRequest req)
         {
             var bank = _context.Branches.Find(id);
@@ -81,7 +89,8 @@ namespace BankBranchAPI.Controllers
             return Created(nameof(Details), new { id = bank.Id });
         }
 
-        [HttpDelete("{id}")]
+        [HttpDelete("Delete")]
+        [Authorize(Roles ="admin")]
         public IActionResult Delete(int id)
         {
             var bank = _context.Branches.Find(id);

@@ -11,11 +11,13 @@
         {
 
         }
-        
+         
+
         public DbSet<BankBranch> Branches { get; set; }
         public DbSet<Employee> Employees { get; set; }
+        public DbSet<UserAccount> Users { get; set; }
 
-        
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             
